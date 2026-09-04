@@ -25,25 +25,25 @@ measure**.
 ## Architecture
 
 ```
-┌────────────────────────┐
-│  generate_data.py      │   Creates synthetic transaction stream (4,000 txns,
-│  (Step 1)              │   8 days) with 3 deliberately injected failure
+┌─────────────────────┐
+│  generate_data.py    │   Creates synthetic transaction stream (4,000 txns,
+│  (Step 1)             │   8 days) with 3 deliberately injected failure
 │                        │   patterns + a saved ground-truth answer key.
 └──────────┬─────────────┘
            │ data/transactions.csv
            │ data/ground_truth_events.csv
            ▼
-┌────────────────────────┐
-│  detect.py             │   Groups transactions by (issuer, 2-hour window),
+┌─────────────────────┐
+│  detect.py            │   Groups transactions by (issuer, 2-hour window),
 │  (Step 2)              │   calculates success rate per group, and flags
 │                        │   statistically significant drops using a
 │                        │   binomial test (not a naive fixed threshold).
 └──────────┬─────────────┘
            │ flagged anomalies
            ▼
-┌────────────────────────┐
+┌─────────────────────┐
 │  diagnose_llm.py       │   For each flagged anomaly, sends the failure
-│  (Step 3, AI step)     │   pattern to Gemini (Google's LLM, free tier) in
+│  (Step 3, AI step)    │   pattern to Gemini (Google's LLM, free tier) in
 │                        │   a SINGLE batched call. The LLM both diagnoses
 │                        │   the likely root cause AND recommends the
 │                        │   recovery action itself - weighing confidence
@@ -52,7 +52,7 @@ measure**.
 └──────────┬─────────────┘
            │ diagnosed causes + recommended actions
            ▼
-┌────────────────────────┐
+┌─────────────────────┐
 │  recover.py            │   Executes the ACTION RECOMMENDED BY THE LLM
 │  (Step 4)              │   (retry_later / prompt_update / delay_retry /
 │                        │   manual_flag), falling back to a safe rule-
@@ -64,7 +64,7 @@ measure**.
 └──────────┬─────────────┘
            │ recovery results
            ▼
-┌────────────────────────┐
+┌─────────────────────┐
 │  validate.py           │   Compares results against the ground-truth
 │  (Step 5)              │   answer key: recall (did we catch every real
 │                        │   event, including the deliberately ambiguous
@@ -74,14 +74,14 @@ measure**.
 └──────────┬─────────────┘
            │
            ▼
-┌────────────────────────┐
+┌─────────────────────┐
 │  run_pipeline.py       │   Runs the full chain end-to-end, prints a
 │  (Step 6)              │   human-readable report, generates a plain-
 │                        │   English incident summary (2nd LLM call),
 │                        │   and saves a full audit trail (detected ->
 │                        │   diagnosed -> action -> outcome) to
 │                        │   data/audit_trail.json.
-└────────────────────────┘
+└───────────────────────┘
 ```
 
 ---
@@ -263,6 +263,34 @@ payment-recovery-agent/
 ```
 
 ---
+
+## Data Privacy
+
+The diagnosis layer sends **only aggregated, anonymized statistics** to
+the third-party LLM (Gemini) - never individual customer or transaction
+identifiers. Concretely, for each flagged anomaly, the API call
+includes just: issuer name, time window, a count of failures per
+failure code, and a total amount. It never includes `customer_id`,
+`txn_id`, or any single transaction's details. This aligns with GDPR's
+data minimization principle - the model reasons about failure
+*patterns*, not identifiable people.
+
+What a production deployment would additionally need to fully address
+GDPR compliance (out of scope for this prototype, noted honestly):
+
+- **Data residency** - confirming where the LLM provider processes
+  requests, and using a regional endpoint or private model if required
+  for EU/India data residency rules.
+- **Right to erasure** - a retention/deletion policy for
+  `data/transactions.csv` and the audit trail if a customer requests
+  their data be removed (helped by the fact that our audit trail
+  already excludes `customer_id`).
+- **Purpose limitation** - ensuring the LLM provider's data-usage terms
+  restrict processing to the stated purpose (payment diagnosis) only.
+- **Legal basis for processing** - typically covered under "legitimate
+  interest" for fraud/recovery purposes, but this is a legal
+  determination for a real deployment, not something code alone
+  resolves.
 
 ## Limitations & Future Work
 
