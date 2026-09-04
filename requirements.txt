@@ -1,0 +1,6 @@
+pandas
+numpy
+scipy
+faker
+python-dotenv
+google-genai

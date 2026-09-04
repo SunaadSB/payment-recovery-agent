@@ -1,0 +1,9 @@
+issuer,time_window,rule_cause,rule_confidence,llm_cause,llm_confidence,recommended_action,agree
+ICICI,2026-08-22 16:00:00,issuer_outage,1.0,issuer_outage,0.9,retry_later,True
+ICICI,2026-08-22 18:00:00,issuer_outage,0.83,issuer_outage,0.65,manual_flag,True
+SBI,2026-08-19 22:00:00,unknown,0.75,unknown,0.35,manual_flag,True
+Kotak,2026-08-23 10:00:00,unknown,0.75,unknown,0.3,manual_flag,True
+Axis,2026-08-24 22:00:00,funds_shortage_cluster,0.67,funds_shortage_cluster,0.55,manual_flag,True
+HDFC,2026-08-22 10:00:00,unknown,1.0,unknown,0.4,manual_flag,True
+ICICI,2026-08-23 16:00:00,funds_shortage_cluster,0.67,funds_shortage_cluster,0.75,delay_retry,True
+SBI,2026-08-18 14:00:00,card_expiry_cluster,0.67,card_expiry_cluster,0.75,prompt_update,True

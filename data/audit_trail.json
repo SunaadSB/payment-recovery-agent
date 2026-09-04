@@ -1,0 +1,182 @@
+[
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.018938",
+    "detected": {
+      "issuer": "ICICI",
+      "time_window": "2026-08-22 16:00:00"
+    },
+    "diagnosed": {
+      "cause": "issuer_outage",
+      "confidence": 0.9
+    },
+    "action_taken": "retry_later",
+    "outcome": {
+      "amount_at_risk": 25701.03,
+      "amount_recovered": 25701.03,
+      "txns_recovered": 7,
+      "txns_still_failed": 0
+    }
+  },
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.019255",
+    "detected": {
+      "issuer": "ICICI",
+      "time_window": "2026-08-22 18:00:00"
+    },
+    "diagnosed": {
+      "cause": "issuer_outage",
+      "confidence": 0.83
+    },
+    "action_taken": "retry_later",
+    "outcome": {
+      "amount_at_risk": 23480.199999999997,
+      "amount_recovered": 23480.2,
+      "txns_recovered": 6,
+      "txns_still_failed": 0
+    }
+  },
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.019443",
+    "detected": {
+      "issuer": "SBI",
+      "time_window": "2026-08-23 16:00:00"
+    },
+    "diagnosed": {
+      "cause": "unknown",
+      "confidence": 0.45
+    },
+    "action_taken": "manual_flag",
+    "outcome": {
+      "amount_at_risk": 34667.25,
+      "amount_recovered": 0.0,
+      "txns_recovered": 0,
+      "txns_still_failed": 6
+    }
+  },
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.019605",
+    "detected": {
+      "issuer": "SBI",
+      "time_window": "2026-08-23 14:00:00"
+    },
+    "diagnosed": {
+      "cause": "unknown",
+      "confidence": 0.4
+    },
+    "action_taken": "manual_flag",
+    "outcome": {
+      "amount_at_risk": 14596.160000000002,
+      "amount_recovered": 0.0,
+      "txns_recovered": 0,
+      "txns_still_failed": 4
+    }
+  },
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.019758",
+    "detected": {
+      "issuer": "SBI",
+      "time_window": "2026-08-19 22:00:00"
+    },
+    "diagnosed": {
+      "cause": "unknown",
+      "confidence": 0.45
+    },
+    "action_taken": "manual_flag",
+    "outcome": {
+      "amount_at_risk": 16547.12,
+      "amount_recovered": 0.0,
+      "txns_recovered": 0,
+      "txns_still_failed": 4
+    }
+  },
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.019913",
+    "detected": {
+      "issuer": "Kotak",
+      "time_window": "2026-08-23 10:00:00"
+    },
+    "diagnosed": {
+      "cause": "unknown",
+      "confidence": 0.45
+    },
+    "action_taken": "manual_flag",
+    "outcome": {
+      "amount_at_risk": 25928.2,
+      "amount_recovered": 0.0,
+      "txns_recovered": 0,
+      "txns_still_failed": 4
+    }
+  },
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.020067",
+    "detected": {
+      "issuer": "Axis",
+      "time_window": "2026-08-24 22:00:00"
+    },
+    "diagnosed": {
+      "cause": "funds_shortage_cluster",
+      "confidence": 0.67
+    },
+    "action_taken": "delay_retry",
+    "outcome": {
+      "amount_at_risk": 17893.510000000002,
+      "amount_recovered": 17893.51,
+      "txns_recovered": 3,
+      "txns_still_failed": 0
+    }
+  },
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.020220",
+    "detected": {
+      "issuer": "HDFC",
+      "time_window": "2026-08-22 10:00:00"
+    },
+    "diagnosed": {
+      "cause": "unknown",
+      "confidence": 0.45
+    },
+    "action_taken": "manual_flag",
+    "outcome": {
+      "amount_at_risk": 8971.5,
+      "amount_recovered": 0.0,
+      "txns_recovered": 0,
+      "txns_still_failed": 3
+    }
+  },
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.020371",
+    "detected": {
+      "issuer": "SBI",
+      "time_window": "2026-08-18 14:00:00"
+    },
+    "diagnosed": {
+      "cause": "card_expiry_cluster",
+      "confidence": 0.67
+    },
+    "action_taken": "prompt_update",
+    "outcome": {
+      "amount_at_risk": 13852.46,
+      "amount_recovered": 4617.49,
+      "txns_recovered": 1,
+      "txns_still_failed": 2
+    }
+  },
+  {
+    "timestamp_logged": "2026-09-03T11:51:49.020523",
+    "detected": {
+      "issuer": "ICICI",
+      "time_window": "2026-08-23 16:00:00"
+    },
+    "diagnosed": {
+      "cause": "funds_shortage_cluster",
+      "confidence": 0.67
+    },
+    "action_taken": "delay_retry",
+    "outcome": {
+      "amount_at_risk": 8947.43,
+      "amount_recovered": 2982.48,
+      "txns_recovered": 1,
+      "txns_still_failed": 2
+    }
+  }
+]

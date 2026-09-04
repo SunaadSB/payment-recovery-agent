@@ -1,0 +1,15 @@
+# Environment variables / API keys - NEVER commit this
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local backup of previous runs - not needed in the public repo
+data/backup/
+
+# OS files
+.DS_Store
+Thumbs.db

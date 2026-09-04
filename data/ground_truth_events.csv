@@ -1,0 +1,5 @@
+event_id,window_start,window_end,affected_issuer_or_method,true_cause,expected_action,recoverable_amount
+EVT_OUTAGE_ICICI,2026-08-22 15:00:00,2026-08-22 19:59:00,ICICI,issuer_outage,retry_later,53918.12
+EVT_CARD_EXPIRY_CLUSTER,,,card,card_expiry_cluster,prompt_update,270775.46
+EVT_FUNDS_SHORTAGE_CLUSTER,2026-08-23 00:00:00,2026-08-24 23:54:00,all,funds_shortage_cluster,delay_retry,325347.02
+EVT_AMBIGUOUS_SBI,2026-08-23 15:00:00,2026-08-23 17:59:00,SBI,unknown,manual_flag,42216.01

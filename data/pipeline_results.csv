@@ -1,0 +1,11 @@
+issuer,time_window,diagnosed_cause,confidence,action_taken,reasoning,amount_at_risk,amount_recovered,num_txns_recovered,num_txns_still_failed
+ICICI,2026-08-22 16:00:00,issuer_outage,0.9,retry_later,"Issuer timeout accounts for 100% of failures, well above the 70% threshold, so the large amount of Rs.25,701.03 does not preclude automated retry_later.",25701.03,25701.03,7,0
+ICICI,2026-08-22 18:00:00,issuer_outage,0.83,retry_later,"Issuer timeout accounts for 83.3% of failures, exceeding the 70% clear pattern threshold.",23480.199999999997,23480.2,6,0
+SBI,2026-08-23 16:00:00,unknown,0.45,manual_flag,"No single failure code exceeds 50%, making the pattern ambiguous, and the affected amount is very large at Rs.34,667.25.",34667.25,0.0,0,6
+SBI,2026-08-23 14:00:00,unknown,0.4,manual_flag,"The failure breakdown is mixed with no single code exceeding 50%, resulting in an unknown diagnosis and manual review.",14596.160000000002,0.0,0,4
+SBI,2026-08-19 22:00:00,unknown,0.45,manual_flag,"Generic decline accounts for 75% of failures, but since it is not a specific outage, expiry, or funds category, the cause is diagnosed as unknown.",16547.12,0.0,0,4
+Kotak,2026-08-23 10:00:00,unknown,0.45,manual_flag,"Generic decline represents 75% of failures, but lacking a direct actionable category, the pattern is treated as unknown.",25928.2,0.0,0,4
+Axis,2026-08-24 22:00:00,funds_shortage_cluster,0.67,delay_retry,"Insufficient funds accounts for 66.7% (50-70% plurality) of failures and the amount is under Rs.30,000, allowing automated delay_retry.",17893.510000000002,17893.51,3,0
+HDFC,2026-08-22 10:00:00,unknown,0.45,manual_flag,"Generic decline accounts for 100% of failures without fitting into a distinct category like outage, expiry, or funds.",8971.5,0.0,0,3
+SBI,2026-08-18 14:00:00,card_expiry_cluster,0.67,prompt_update,"Card expired accounts for 66.7% of failures, forming a clear 50-70% plurality below the Rs.30,000 threshold.",13852.46,4617.49,1,2
+ICICI,2026-08-23 16:00:00,funds_shortage_cluster,0.67,delay_retry,"Insufficient funds accounts for 66.7% of failures, forming a clear plurality well below the Rs.30,000 threshold.",8947.43,2982.48,1,2

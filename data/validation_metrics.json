@@ -1,0 +1,11 @@
+{
+  "recall_caught": 4,
+  "recall_total": 4,
+  "recall_pct": 100.0,
+  "diagnosis_correct": 4,
+  "diagnosis_total": 4,
+  "diagnosis_accuracy_pct": 100.0,
+  "precision_true_positives": 8,
+  "precision_total_flagged": 10,
+  "precision_pct": 80.0
+}
