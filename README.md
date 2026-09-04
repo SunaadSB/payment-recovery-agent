@@ -25,25 +25,25 @@ measure**.
 ## Architecture
 
 ```
-┌────────────────────────┐
-│  generate_data.py      │   Creates synthetic transaction stream (4,000 txns,
-│  (Step 1)              │   8 days) with 3 deliberately injected failure
+┌─────────────────────┐
+│  generate_data.py    │   Creates synthetic transaction stream (4,000 txns,
+│  (Step 1)             │   8 days) with 3 deliberately injected failure
 │                        │   patterns + a saved ground-truth answer key.
 └──────────┬─────────────┘
            │ data/transactions.csv
            │ data/ground_truth_events.csv
            ▼
-┌────────────────────────┐
-│  detect.py             │   Groups transactions by (issuer, 2-hour window),
+┌─────────────────────┐
+│  detect.py            │   Groups transactions by (issuer, 2-hour window),
 │  (Step 2)              │   calculates success rate per group, and flags
 │                        │   statistically significant drops using a
 │                        │   binomial test (not a naive fixed threshold).
 └──────────┬─────────────┘
            │ flagged anomalies
            ▼
-┌────────────────────────┐
+┌─────────────────────┐
 │  diagnose_llm.py       │   For each flagged anomaly, sends the failure
-│  (Step 3, AI step)     │   pattern to Gemini (Google's LLM, free tier) in
+│  (Step 3, AI step)    │   pattern to Gemini (Google's LLM, free tier) in
 │                        │   a SINGLE batched call. The LLM both diagnoses
 │                        │   the likely root cause AND recommends the
 │                        │   recovery action itself - weighing confidence
@@ -52,7 +52,7 @@ measure**.
 └──────────┬─────────────┘
            │ diagnosed causes + recommended actions
            ▼
-┌────────────────────────┐
+┌─────────────────────┐
 │  recover.py            │   Executes the ACTION RECOMMENDED BY THE LLM
 │  (Step 4)              │   (retry_later / prompt_update / delay_retry /
 │                        │   manual_flag), falling back to a safe rule-
@@ -64,7 +64,7 @@ measure**.
 └──────────┬─────────────┘
            │ recovery results
            ▼
-┌────────────────────────┐
+┌─────────────────────┐
 │  validate.py           │   Compares results against the ground-truth
 │  (Step 5)              │   answer key: recall (did we catch every real
 │                        │   event, including the deliberately ambiguous
@@ -74,14 +74,14 @@ measure**.
 └──────────┬─────────────┘
            │
            ▼
-┌────────────────────────┐
+┌─────────────────────┐
 │  run_pipeline.py       │   Runs the full chain end-to-end, prints a
 │  (Step 6)              │   human-readable report, generates a plain-
 │                        │   English incident summary (2nd LLM call),
 │                        │   and saves a full audit trail (detected ->
 │                        │   diagnosed -> action -> outcome) to
 │                        │   data/audit_trail.json.
-└────────────────────────┘
+└───────────────────────┘
 ```
 
 ---
@@ -291,6 +291,42 @@ GDPR compliance (out of scope for this prototype, noted honestly):
   interest" for fraud/recovery purposes, but this is a legal
   determination for a real deployment, not something code alone
   resolves.
+
+## Testing
+
+Each component was tested individually before being wired into the
+full pipeline, and again as part of the end-to-end run:
+
+- **`generate_data.py`** - verified the ambiguous-cluster injection
+  produces a genuinely balanced failure-code mix (no code exceeding
+  ~33% of failures) rather than an accidentally dominant one.
+- **`detect.py`** - verified against known ground truth that both real
+  outage windows are flagged with very high statistical significance
+  (p ~ 1e-8 to 1e-9), and tested two alternative thresholding
+  approaches (a stricter fixed cutoff, and a formal Benjamini-Hochberg
+  correction) - both were rejected after confirming they reduced
+  recall on the card-expiry event, and that decision is documented in
+  Limitations below rather than silently discarded.
+- **`diagnose_llm.py`** - tested resilience to two real failure modes
+  encountered during development: temporary server unavailability
+  (503 errors, handled via retry with backoff) and daily free-tier
+  quota exhaustion (429 errors, handled by falling back to a second
+  model with a separate quota pool). Both were verified working via
+  live runs, not just written defensively.
+- **`recover.py`** - the action-resolution fallback logic (using the
+  LLM's recommended action, falling back to a safe rule-based mapping
+  if that response is ever missing or invalid) was unit-tested with
+  synthetic rows covering all three cases: valid action present,
+  action missing, and an invalid/unrecognized action string.
+- **`validate.py`** - the precision-calculation logic was corrected
+  after testing revealed a bug: an early version credited any
+  "unknown"-labeled flag as a true positive once "unknown" became a
+  legitimate ground-truth cause (for the ambiguous-cluster event),
+  which would have silently inflated precision. Fixed to require
+  genuine issuer + time-window overlap with a real event instead.
+- **Full pipeline** - run end-to-end multiple times; final validated
+  run: 4/4 recall, 4/4 diagnosis accuracy, 8/10 precision,
+  Rs.74,674.71 recovered of Rs.190,584.86 at risk (see Results above).
 
 ## Limitations & Future Work
 
