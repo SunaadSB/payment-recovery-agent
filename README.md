@@ -20,30 +20,47 @@ diagnosed manually — while revenue leaks in the meantime.
 This project closes that loop automatically: **detect → diagnose → act →
 measure**.
 
+### How this relates to Razorpay's existing tools
+
+Razorpay already has strong tools in this space - **Optimizer** (AI-powered
+gateway routing using 2M+ data points to boost success rates in
+real-time) and **In-Session Retries** (letting a failed card payment
+retry within the same checkout session). Both act *in the moment*, on
+a single transaction, optimizing for immediate conversion.
+
+This project is a complementary, one-layer-back capability: it looks
+at *patterns* of failures over time, diagnoses the systemic root cause
+with an auditable explanation (not just a routing decision), and makes
+a risk-aware call on whether to auto-act or escalate to a human -
+explicitly designed to say "I don't know" rather than force a guess.
+It's less "retry this transaction now" and more "why is this happening,
+and should we trust an automated fix" - a triage and root-cause layer
+that could sit alongside Optimizer's real-time routing.
+
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────┐
-│  generate_data.py    │   Creates synthetic transaction stream (4,000 txns,
-│  (Step 1)             │   8 days) with 3 deliberately injected failure
+┌────────────────────────┐
+│  generate_data.py      │   Creates synthetic transaction stream (4,000 txns,
+│  (Step 1)              │   8 days) with 3 deliberately injected failure
 │                        │   patterns + a saved ground-truth answer key.
 └──────────┬─────────────┘
            │ data/transactions.csv
            │ data/ground_truth_events.csv
            ▼
-┌─────────────────────┐
-│  detect.py            │   Groups transactions by (issuer, 2-hour window),
+┌────────────────────────┐
+│  detect.py             │   Groups transactions by (issuer, 2-hour window),
 │  (Step 2)              │   calculates success rate per group, and flags
 │                        │   statistically significant drops using a
 │                        │   binomial test (not a naive fixed threshold).
 └──────────┬─────────────┘
            │ flagged anomalies
            ▼
-┌─────────────────────┐
+┌────────────────────────┐
 │  diagnose_llm.py       │   For each flagged anomaly, sends the failure
-│  (Step 3, AI step)    │   pattern to Gemini (Google's LLM, free tier) in
+│  (Step 3, AI step)     │   pattern to Gemini (Google's LLM, free tier) in
 │                        │   a SINGLE batched call. The LLM both diagnoses
 │                        │   the likely root cause AND recommends the
 │                        │   recovery action itself - weighing confidence
@@ -52,7 +69,7 @@ measure**.
 └──────────┬─────────────┘
            │ diagnosed causes + recommended actions
            ▼
-┌─────────────────────┐
+┌────────────────────────┐
 │  recover.py            │   Executes the ACTION RECOMMENDED BY THE LLM
 │  (Step 4)              │   (retry_later / prompt_update / delay_retry /
 │                        │   manual_flag), falling back to a safe rule-
@@ -64,7 +81,7 @@ measure**.
 └──────────┬─────────────┘
            │ recovery results
            ▼
-┌─────────────────────┐
+┌────────────────────────┐
 │  validate.py           │   Compares results against the ground-truth
 │  (Step 5)              │   answer key: recall (did we catch every real
 │                        │   event, including the deliberately ambiguous
@@ -74,14 +91,14 @@ measure**.
 └──────────┬─────────────┘
            │
            ▼
-┌─────────────────────┐
+┌────────────────────────┐
 │  run_pipeline.py       │   Runs the full chain end-to-end, prints a
 │  (Step 6)              │   human-readable report, generates a plain-
 │                        │   English incident summary (2nd LLM call),
 │                        │   and saves a full audit trail (detected ->
 │                        │   diagnosed -> action -> outcome) to
 │                        │   data/audit_trail.json.
-└───────────────────────┘
+└────────────────────────┘
 ```
 
 ---
@@ -273,6 +290,43 @@ payment-recovery-agent/
 ```
 
 ---
+
+## Scalability
+
+This prototype is built for a batch of a few thousand transactions and
+a handful of daily anomalies - appropriate for a hackathon demo, but
+several architectural choices would need to change for Razorpay's
+actual transaction volume (crores of transactions/day):
+
+- **Batch to streaming:** the pipeline currently loads a full CSV and
+  processes it once. Real-time detection at scale would need a
+  streaming architecture (e.g., Kafka + a stream processor) instead of
+  a periodic batch job, so anomalies are caught within minutes, not at
+  the next scheduled run.
+- **LLM batching has a ceiling:** we batch all flagged anomalies into
+  one prompt to minimize API calls - this works well for a handful of
+  events, but would hit token limits and degrade in quality with
+  hundreds/thousands of anomalies. At scale, this needs chunking into
+  smaller batches, parallel calls with proper rate-limit handling, and
+  likely caching for repeated failure patterns to avoid redundant calls.
+- **Free-tier quota is a hackathon constraint, not a production plan:**
+  a real deployment needs a paid tier (or self-hosted model) with
+  capacity planning, plus multi-provider redundancy so a single
+  vendor's outage doesn't stall recovery.
+- **Flat files don't scale:** `data/transactions.csv` and
+  `audit_trail.json` work for a demo; production needs a proper
+  time-series store for transactions and a structured logging/
+  observability stack for the audit trail, both queryable at scale.
+- **Single-threaded to distributed:** detection, diagnosis, and
+  recovery could become independent services connected by a queue,
+  so each stage scales independently based on its own load (e.g.,
+  detection is cheap and high-volume; diagnosis is LLM-bound and
+  needs its own throughput management).
+
+What's already scale-appropriate by design: only calling the LLM on
+*flagged* anomalies (not every transaction) keeps cost proportional to
+actual risk, not raw volume - this cost-consciousness would carry
+forward into a production version unchanged.
 
 ## Data Privacy
 
